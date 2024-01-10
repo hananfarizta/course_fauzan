@@ -9,6 +9,7 @@ class CoursesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var id = courses.id;
     return Row(
       children: [
         SizedBox(
@@ -16,8 +17,14 @@ class CoursesCard extends StatelessWidget {
         ),
         InkWell(
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => DetailProduk(courses)));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailProduk(),
+                  settings: RouteSettings(
+                    arguments: id,
+                  ),
+                ));
           },
           child: SizedBox(
               child: Stack(
@@ -53,16 +60,17 @@ class CoursesCard extends StatelessWidget {
                   ],
                 ),
                 child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: courses.courseName == "Belajar PHP"
-                        ? Image.asset(
-                            'assets/Image_php.png',
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            'assets/Image_react.png',
-                            fit: BoxFit.cover,
-                          )),
+                  borderRadius: BorderRadius.circular(20),
+                  child: courses.courseName == "Belajar PHP"
+                      ? Image.asset(
+                          'assets/Image_php.png',
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          'assets/Image_react.png',
+                          fit: BoxFit.cover,
+                        ),
+                ),
               ),
               Container(
                 width: 237.31,

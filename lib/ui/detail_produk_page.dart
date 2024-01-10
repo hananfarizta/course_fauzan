@@ -1,11 +1,63 @@
 import 'package:course_fauzan/models/courses_model.dart';
+import 'package:course_fauzan/providers/courses_provider.dart';
 import 'package:course_fauzan/theme.dart';
 import 'package:course_fauzan/ui/checkout_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class DetailProduk extends StatelessWidget {
-  final CoursesModel courses;
-  const DetailProduk(this.courses, {super.key});
+class DetailProduk extends StatefulWidget {
+  const DetailProduk({super.key});
+
+  @override
+  State<DetailProduk> createState() => _DetailProdukState();
+}
+
+class _DetailProdukState extends State<DetailProduk> {
+  String? idd;
+  DetailModel? getDetail;
+
+  Future<DetailModel> fetachDetail(String id) async {
+    try {
+      DetailProvider detailProvider = Provider.of<DetailProvider>(context);
+      DetailModel fetchedDetail = await detailProvider.getDetail(id);
+      getDetail = fetchedDetail;
+      return fetchedDetail;
+    } catch (error) {
+      print('Error fetching campaigns: $error');
+      return DetailModel();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Object? id = ModalRoute.of(context)!.settings.arguments;
+    final String? idd = id.toString();
+
+    return FutureBuilder<DetailModel>(
+      future: fetachDetail(idd!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          DetailModel? detail = snapshot.data;
+          return DetailPage(
+            detailModel: detail!,
+          );
+        }
+      },
+    );
+  }
+}
+
+class DetailPage extends StatelessWidget {
+  const DetailPage({
+    super.key,
+    required this.detailModel,
+  });
+
+  final DetailModel detailModel;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +79,7 @@ class DetailProduk extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Rp. 150.000',
+                  'Rp ${detailModel.data!.harga}',
                   style: whiteTextStyle.copyWith(
                     fontSize: 16,
                   ),
@@ -103,7 +155,7 @@ class DetailProduk extends StatelessWidget {
                     ),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
-                        child: courses.courseName == "Belajar PHP"
+                        child: detailModel.data!.courseName == "Belajar PHP"
                             ? Image.asset(
                                 'assets/Image_php.png',
                                 fit: BoxFit.cover,
@@ -184,7 +236,7 @@ class DetailProduk extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    courses.courseName!,
+                                    detailModel.data!.courseName!,
                                     style: whiteTextStyle.copyWith(
                                       fontSize: 20,
                                     ),
@@ -193,7 +245,7 @@ class DetailProduk extends StatelessWidget {
                                     height: 8,
                                   ),
                                   Text(
-                                    courses.category!,
+                                    detailModel.data!.category!,
                                     style: whiteTextStyle2.copyWith(
                                       fontSize: 16,
                                     ),
@@ -208,7 +260,7 @@ class DetailProduk extends StatelessWidget {
                                             CrossAxisAlignment.center,
                                         children: [
                                           Icon(
-                                            Icons.person_2_sharp,
+                                            Icons.video_collection_outlined,
                                             color: whiteColor,
                                             size: 20,
                                           ),
@@ -216,7 +268,7 @@ class DetailProduk extends StatelessWidget {
                                             width: 4,
                                           ),
                                           Text(
-                                            courses.pengajar!,
+                                            ' ${detailModel.data!.durasi} Video',
                                             style: greyTextStyle.copyWith(
                                               fontSize: 12,
                                             ),
@@ -245,14 +297,13 @@ class DetailProduk extends StatelessWidget {
                 ),
                 Text.rich(
                   TextSpan(
-                    text:
-                        '${courses.courseName! + ' ' + courses.category! + ' oleh ' + courses.pengajar! + '...'}',
+                    text: detailModel.data!.deskripsi,
                     style: greyTextStyle.copyWith(
                       fontSize: 14,
                     ),
                     children: [
                       TextSpan(
-                        text: ' Show More',
+                        text: '...',
                         style: primaryTextStyle.copyWith(
                             fontSize: 14, fontWeight: FontWeight.w600),
                       ),
@@ -280,9 +331,9 @@ class DetailProduk extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Fauzan Nur',
+                          detailModel.data!.pengajar!,
                           style: whiteTextStyle.copyWith(
-                            fontSize: 14,
+                            fontSize: 12,
                           ),
                         ),
                         const SizedBox(

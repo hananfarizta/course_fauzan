@@ -3,6 +3,7 @@ import 'package:course_fauzan/providers/courses_provider.dart';
 import 'package:course_fauzan/theme.dart';
 import 'package:course_fauzan/widgets/courses_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -36,17 +37,11 @@ class _HomePageState extends State<HomePage> {
       future: fetchCourses(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Return a loading indicator while waiting for the future to complete
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          // Handle any error that occurred during the future execution
           return Text('Error: ${snapshot.error}');
         } else {
-          // Future completed successfully, you can access the data using snapshot.data
           List<CoursesModel>? courses = snapshot.data;
-
-          // Return your widget tree based on the data
-          // print(courses![0].idUser);
           return content(
             coursesModelList: courses!,
           );
@@ -57,11 +52,16 @@ class _HomePageState extends State<HomePage> {
 }
 
 class content extends StatelessWidget {
-  const content({
+  content({
     super.key,
     required this.coursesModelList,
   });
   final List<CoursesModel> coursesModelList;
+
+  final TextEditingController _controller = TextEditingController();
+
+  List<String> get halo =>
+      coursesModelList.map((courses) => courses.courseName.toString()).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -118,36 +118,43 @@ class content extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Container(
-                height: 50,
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                    color: secondaryColor,
-                    borderRadius: BorderRadius.circular(10)),
-                child: Center(
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'assets/IC_Search.png',
-                        color: blackColor,
-                        width: 25,
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          style: primaryTextStyle,
-                          decoration: InputDecoration.collapsed(
-                            hintText: 'Cari Kelas Yang Anda Inginkan',
-                            hintStyle: greyTextStyle.copyWith(fontSize: 14),
-                          ),
-                        ),
-                      )
-                    ],
+              child: TypeAheadField(
+                textFieldConfiguration: TextFieldConfiguration(
+                  autofocus: false,
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: "Cari course",
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Colors.grey,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
                   ),
                 ),
+                suggestionsCallback: (pattern) {
+                  return halo
+                      .where((country) =>
+                          country.toLowerCase().contains(pattern.toLowerCase()))
+                      .toList();
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(
+                    title: Text(suggestion),
+                  );
+                },
+                onSuggestionSelected: (suggestion) {
+                  // Handle when a suggestion is selected.
+                  _controller.text = suggestion;
+                  print('Selected: $suggestion');
+                },
               ),
             ),
             const SizedBox(
@@ -342,7 +349,7 @@ class content extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Belajar PHP',
+                        coursesModelList[0].category!,
                         style: whiteTextStyle.copyWith(
                           fontSize: 18,
                         ),
@@ -409,7 +416,7 @@ class content extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Belajar React Native',
+                        coursesModelList[1].category!,
                         style: whiteTextStyle.copyWith(
                           fontSize: 18,
                         ),
